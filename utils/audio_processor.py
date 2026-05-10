@@ -5,36 +5,45 @@ from pydub import AudioSegment
 DOWNLOAD_DIR = "downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
+
 def download_youtube_audio(url):
     output_path = os.path.join(DOWNLOAD_DIR, "%(title)s.%(ext)s")
     yt_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': output_path,
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'wav',
-            'preferredquality': '192',
-        }],
+        "format": "bestaudio/best",
+        "outtmpl": output_path,
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "wav",
+                "preferredquality": "192",
+            }
+        ],
         "quiet": True,
     }
 
     with yt_dlp.YoutubeDL(yt_opts) as ydl:
         info = ydl.extract_info(url, download=True)
-        filename = ydl.prepare_filename(info).replace(".webm", ".wav").replace(".m4a", ".wav")
+        filename = (
+            ydl.prepare_filename(info).replace(".webm", ".wav").replace(".m4a", ".wav")
+        )
     return filename
 
-data = download_youtube_audio("youtube-video-link")
+
+# data = download_youtube_audio("youtube-video-link")
+
 
 def convert_to_wav(input_path: str) -> str:
     """Convert any audio/video fil to WAV format using pydub."""
     output_path = os.path.splitext(input_path)[0] + "_conveted.wav"
     audio = AudioSegment.from_file(input_path)
-    audio = audio.set_channels(1).set_frame_rate(16000) #mono & 16kHz
+    audio = audio.set_channels(1).set_frame_rate(16000)  # mono & 16kHz
     audio.export(output_path, format="wav")
     return output_path
 
-data_final = convert_to_wav(data)
+
+# data_final = convert_to_wav(data)
 # print(data)
+
 
 def chunk_audio(wav_path: str, chunk_minutes: int = 10) -> list:
     audio = AudioSegment.from_wav(wav_path)
@@ -51,7 +60,9 @@ def chunk_audio(wav_path: str, chunk_minutes: int = 10) -> list:
 
     return chunks
 
+
 # print(chunk_audio(data_final))
+
 
 def process_input(source: str) -> list:
     if source.startswith("http://") or source.startswith("https://"):
@@ -60,7 +71,7 @@ def process_input(source: str) -> list:
     else:
         print("Detected local file. Converting to WAV...")
         wav_path = convert_to_wav(source)
-    
+
     print("Chunking audio...")
     chunks = chunk_audio(wav_path)
     print(f"Audio ready - {len(chunks)} chunk(s) created.")
